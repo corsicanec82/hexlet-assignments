@@ -20,4 +20,4 @@ jobs:
         uses: hexlet/assignment-action@main
         with:
           hexlet_token: ${{ secrets.HEXLET_TOKEN }}
-          verbose: true
+          verbose: false
