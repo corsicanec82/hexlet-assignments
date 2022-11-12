@@ -16,8 +16,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      # - name: Hexlet assignment check
+      #   uses: hexlet/assignment-action@release
+      #   with:
+      #     hexlet_token: ${{ secrets.HEXLET_TOKEN }}
+
       - name: Hexlet assignment check
-        uses: hexlet/assignment-action@main
+        uses: ./
         with:
           hexlet_token: ${{ secrets.HEXLET_TOKEN }}
           verbose: false
