@@ -24,7 +24,7 @@ const params = {
 };
 
 try {
-  const output = execSync('tput cols', { shell: '/bin/bash', stdio: ['inherit'] });
+  const output = execSync('tput -T xterm-256color cols', { shell: '/bin/bash', stdio: ['inherit'] });
   console.log(output.toString().trim());
   await runTests(params);
 } catch (e) {
