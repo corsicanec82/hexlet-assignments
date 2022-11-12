@@ -52,7 +52,7 @@ const runChecking = async (task, options) => {
 
   try {
     const startingMessage = `${taskToAction[task]} assignment "${assignmentName}" started`;
-    core.info('='.repeat(startingMessage.length));
+    core.info('─'.repeat(startingMessage.length));
     core.info(colors.yellow(startingMessage));
 
     await exec(
@@ -64,14 +64,14 @@ const runChecking = async (task, options) => {
 
     const finishingMessage = `${taskToAction[task]} assignment "${assignmentName}" completed successfully`;
     core.info(colors.green(finishingMessage));
-    core.info('='.repeat(finishingMessage.length));
+    core.info('─'.repeat(finishingMessage.length));
   } catch (e) {
     success = false;
     exception = e;
 
     const failingMessage = `${taskToAction[task]} assignment "${assignmentName}" failed`;
     core.info(colors.red(failingMessage));
-    core.info('='.repeat(failingMessage.length));
+    core.info('─'.repeat(failingMessage.length));
   }
 
   return { output: outputParts.join(''), success, exception };
@@ -99,14 +99,6 @@ const checkAssignment = async ({ assignmentPath, coursePath }) => {
   if (!testingData.success) {
     throw testingData.exception;
   }
-
-  // core.info(colors.yellow(`Checking assignment ${assignmentName} started`));
-  // await exec(
-  //   `docker compose -f docker-compose.yml run --rm -v ${assignmentPath}:${assignmentDistPath} project make test-current ASSIGNMENT=${lessonName}`,
-  //   null,
-  //   { cwd: coursePath },
-  // );
-  // core.info(colors.green(`Checking assignment ${assignmentName} successful completed`));
 };
 
 export const runTests = async (params) => {

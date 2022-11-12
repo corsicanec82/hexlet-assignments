@@ -24,7 +24,6 @@ const params = {
 };
 
 try {
-  execSync("echo -e '\x1b[41;37mWarning text\x1b[K\x1b[0m';", { shell: '/bin/bash', stdio: 'inherit' });
   await runTests(params);
 } catch (e) {
   core.error('The tests have failed. Examine what they have to say. Inhale deeply. Exhale. Fix the code.');
