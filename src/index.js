@@ -47,34 +47,30 @@ const runChecking = async (task, options) => {
 
   const taskToAction = { test: 'Testing', lint: 'Linting' };
 
-  let success;
+  let passed;
   let exception;
 
   try {
-    const startingMessage = `${taskToAction[task]} assignment "${assignmentName}" started`;
-    core.info('─'.repeat(startingMessage.length));
-    core.info(colors.yellow(startingMessage));
+    core.info(colors.yellow(`${taskToAction[task]} assignment "${assignmentName}" started`));
 
     await exec(
       `docker compose -f docker-compose.yml run --rm -v ${assignmentPath}:${assignmentDistPath} project make ${task}-current ASSIGNMENT=${lessonName}`,
       null,
       { cwd: coursePath, listeners },
     );
-    success = true;
+    passed = true;
 
-    const finishingMessage = `${taskToAction[task]} assignment "${assignmentName}" completed successfully`;
-    core.info(colors.green(finishingMessage));
-    core.info('─'.repeat(finishingMessage.length));
+    core.info(colors.green(`${taskToAction[task]} assignment "${assignmentName}" completed successfully`));
   } catch (e) {
-    success = false;
+    passed = false;
     exception = e;
 
-    const failingMessage = `${taskToAction[task]} assignment "${assignmentName}" failed`;
-    core.info(colors.red(failingMessage));
-    core.info('─'.repeat(failingMessage.length));
+    core.info(colors.red(`${taskToAction[task]} assignment "${assignmentName}" failed`));
   }
 
-  return { output: outputParts.join(''), success, exception };
+  core.info('─'.repeat(40));
+
+  return { output: outputParts.join(''), passed, exception };
 };
 
 const runTesting = (options) => runChecking('test', options);
@@ -91,14 +87,10 @@ const checkAssignment = async ({ assignmentPath, coursePath }) => {
   const options = {
     coursePath, assignmentPath, assignmentDistPath, lessonName, assignmentName,
   };
-  const testingData = await runTesting(options);
-  const lintingData = await runLinting(options);
+  const testData = await runTesting(options);
+  const lintData = await runLinting(options);
 
-  // save data here and pass to post action
-
-  if (!testingData.success) {
-    throw testingData.exception;
-  }
+  return { testData, lintData };
 };
 
 export const runTests = async (params) => {
@@ -155,7 +147,14 @@ export const runTests = async (params) => {
   core.saveState('checkState', JSON.stringify({ state: 'fail' }));
 
   await prepareCourseDirectory({ verbose, coursePath, imageName });
-  await checkAssignment({ assignmentPath, coursePath });
+  const checkData = await checkAssignment({ assignmentPath, coursePath });
+
+  core.saveState('checkData', JSON.stringify({ checkData }));
+
+  const { testData } = checkData;
+  if (!testData.passed) {
+    throw testData.exception;
+  }
 
   core.saveState('checkState', JSON.stringify({ state: 'success' }));
 };
@@ -169,6 +168,8 @@ export const runPostActions = async ({ hexletToken }) => {
   }
 
   const checkState = JSON.parse(core.getState('checkState'));
+  const checkData = core.getState('checkData');
+  console.log(checkData);
 
   // const headers = { 'X-Auth-Key': hexletToken };
   // const http = new HttpClient();
