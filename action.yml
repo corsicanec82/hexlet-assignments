@@ -13,7 +13,7 @@ inputs:
     description: 'mount path'
     required: true
     default: "/var/tmp"
-basic_secret:
+  basic_secret:
     description: 'Basic secret'
     required: false
 
