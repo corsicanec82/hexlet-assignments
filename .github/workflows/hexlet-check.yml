@@ -23,6 +23,9 @@ jobs:
 
       - name: Hexlet assignment check
         uses: ./
+        env:
+          ACTION_API_HOST: ${{ secrets.API_HOST }}
         with:
           hexlet_token: ${{ secrets.HEXLET_TOKEN }}
+          basic_secret: ${{ secrets.BASIC_SECRET }}
           verbose: false

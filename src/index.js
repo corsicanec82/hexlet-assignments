@@ -11,7 +11,9 @@ import colors from 'ansi-colors';
 import { HttpClient } from '@actions/http-client';
 
 import buildRoutes from './routes.js';
-import { getCourseData, getFullImageName } from './utils.js';
+import {
+  getCourseData, getFullImageName, getFilesData, getAssignmentContents,
+} from './utils.js';
 
 const prepareCourseDirectory = async ({ verbose, coursePath, imageName }) => {
   const cmdOptions = { silent: !verbose };
@@ -47,25 +49,21 @@ const runChecking = async (task, options) => {
 
   const taskToAction = { test: 'Testing', lint: 'Linting' };
 
-  let passed;
-  let exception;
+  let passed = false;
+  let exception = null;
 
   try {
-    core.info(colors.yellow(`${taskToAction[task]} assignment "${assignmentName}" started`));
-
+    core.info(colors.yellow(`${taskToAction[task]} assignment "${assignmentName}" started.`));
     await exec(
       `docker compose -f docker-compose.yml run --rm -v ${assignmentPath}:${assignmentDistPath} project make ${task}-current ASSIGNMENT=${lessonName}`,
       null,
       { cwd: coursePath, listeners },
     );
     passed = true;
-
-    core.info(colors.green(`${taskToAction[task]} assignment "${assignmentName}" completed successfully`));
+    core.info(colors.green(`${taskToAction[task]} assignment "${assignmentName}" completed successfully.`));
   } catch (e) {
-    passed = false;
     exception = e;
-
-    core.info(colors.red(`${taskToAction[task]} assignment "${assignmentName}" failed`));
+    core.info(colors.red(`${taskToAction[task]} assignment "${assignmentName}" completed with errors.`));
   }
 
   core.info('─'.repeat(40));
@@ -101,6 +99,7 @@ export const runTests = async (params) => {
     projectPath,
     apiHost,
     containerNamespace,
+    basicSecret,
   } = params;
 
   const currentPath = path.join(projectPath, '.current.json');
@@ -124,7 +123,7 @@ export const runTests = async (params) => {
   const { slug, locale } = getCourseData(courseSlugWithLocale);
   const routes = buildRoutes(slug, lessonSlug, locale, apiHost);
 
-  const headers = { 'X-Auth-Key': hexletToken };
+  const headers = { 'X-Auth-Key': hexletToken, Authorization: `Basic ${basicSecret}` };
   const http = new HttpClient();
   const response = await http.postJson(routes.checkValidatePath, {}, headers);
 
@@ -144,47 +143,53 @@ export const runTests = async (params) => {
   const imageName = getFullImageName(containerNamespace, slug, locale, imageTag);
 
   core.saveState('checkCreatePath', routes.checkCreatePath);
-  core.saveState('checkState', JSON.stringify({ state: 'fail' }));
+  core.saveState('checkState', 'fail');
 
   await prepareCourseDirectory({ verbose, coursePath, imageName });
-  const checkData = await checkAssignment({ assignmentPath, coursePath });
+  const filesData = await getFilesData(coursePath, lessonSlug);
+  core.saveState('filesData', JSON.stringify(filesData));
+  core.saveState('assignmentPath', assignmentPath);
 
+  const checkData = await checkAssignment({ assignmentPath, coursePath });
   core.saveState('checkData', JSON.stringify(checkData));
 
   const { testData } = checkData;
+  // NOTE: важен только результат запуска тестов. Проверка линтером не должна вызывать ошибку.
   if (!testData.passed) {
     throw testData.exception;
   }
 
-  core.saveState('checkState', JSON.stringify({ state: 'success' }));
+  core.saveState('checkState', 'success');
 };
 
-/* eslint-disable */
-export const runPostActions = async ({ hexletToken }) => {
-  const checkCreatePath = core.getState('checkCreatePath');
+export const runPostActions = async ({ hexletToken, basicSecret }) => {
+  const checkDataContent = core.getState('checkData');
 
-  if (_.isEmpty(checkCreatePath)) {
+  // NOTE: в таком случае экшн отработал с непредвиденными ошибками до запуска тестов
+  // дальнейшая нормальная работа экшна невозможна
+  if (_.isEmpty(checkDataContent)) {
+    core.info(colors.cyan('The assignment checking hasn\'t started. No data to send.'));
     return;
   }
 
-  const checkState = JSON.parse(core.getState('checkState'));
-  const checkData = JSON.parse(core.getState('checkData'));
-  // core.info(checkData);
-  const { testData, lintData } = checkData;
-  core.info(testData.output);
-  core.info('─'.repeat(40));
-  core.info(lintData.output);
+  const checkCreatePath = core.getState('checkCreatePath');
+  const checkState = core.getState('checkState');
+  const filesData = JSON.parse(core.getState('filesData'));
+  const assignmentPath = core.getState('assignmentPath');
 
-  // const headers = { 'X-Auth-Key': hexletToken };
-  // const http = new HttpClient();
-  // const response = await http.postJson(checkCreatePath, { check: checkState }, headers);
+  const checkData = JSON.parse(checkDataContent);
+  const assignmentContents = await getAssignmentContents(assignmentPath, filesData);
 
-  // // NOTE: любые ответы которые не вызвали падение клиента и не являются успешными - неизвестные
-  // if (response.statusCode !== 201) {
-  //   const responseData = JSON.stringify(response, null, 2);
-  //   throw new Error(`An unrecognized connection error has occurred. Please report to support.\n${responseData}`);
-  // }
+  const http = new HttpClient();
+  const headers = { 'X-Auth-Key': hexletToken, Authorization: `Basic ${basicSecret}` };
+  const body = { check: { ...checkData, ...assignmentContents, state: checkState } };
+  const response = await http.postJson(checkCreatePath, body, headers);
 
-  core.info(colors.cyan('The result of the assignment checking was successfully submitted.'));
+  // NOTE: любые ответы которые не вызвали падение клиента и не являются успешными - неизвестные
+  if (response.statusCode !== 201) {
+    const responseData = JSON.stringify(response, null, 2);
+    throw new Error(`An unrecognized connection error has occurred. Please report to support.\n${responseData}`);
+  }
+
+  core.info(colors.cyan('The result of the assignment checking has submitted successfully.'));
 };
-/* eslint-enable */

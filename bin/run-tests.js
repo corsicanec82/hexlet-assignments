@@ -3,7 +3,6 @@
 import core from '@actions/core';
 import path from 'path';
 import cleanStack from 'clean-stack';
-import { execSync } from 'child_process';
 
 import { runTests } from '../src/index.js';
 
@@ -12,6 +11,7 @@ const mountPath = core.getInput('mount_path', { required: true });
 const apiHost = process.env.ACTION_API_HOST;
 const projectPath = path.resolve(process.cwd(), process.env.ACTION_PROJECT_PATH || '');
 const hexletToken = core.getInput('hexlet_token', { required: true });
+const basicSecret = core.getInput('basic_secret', { required: true });
 const containerNamespace = 'hexletprograms';
 
 const params = {
@@ -21,6 +21,7 @@ const params = {
   apiHost,
   projectPath,
   containerNamespace,
+  basicSecret,
 };
 
 try {
