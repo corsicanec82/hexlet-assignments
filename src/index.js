@@ -169,7 +169,7 @@ export const runPostActions = async ({ hexletToken }) => {
 
   const checkState = JSON.parse(core.getState('checkState'));
   const checkData = core.getState('checkData');
-  console.log(checkData);
+  core.info(checkData);
 
   // const headers = { 'X-Auth-Key': hexletToken };
   // const http = new HttpClient();
