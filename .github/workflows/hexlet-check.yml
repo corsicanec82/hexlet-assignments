@@ -23,4 +23,3 @@ jobs:
           ACTION_API_HOST: ${{ secrets.API_HOST }}
         with:
           hexlet_token: ${{ secrets.HEXLET_TOKEN }}
-          verbose: true
