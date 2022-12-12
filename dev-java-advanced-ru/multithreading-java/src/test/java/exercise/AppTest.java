@@ -20,7 +20,7 @@ class AppTest {
 
         int[] numbers = {-2, 0};
         Map<String, Integer> actual = App.getMinMax(numbers);
-        Map<String, Integer> expected = Map.of("min", -2, "max", 1);
+        Map<String, Integer> expected = Map.of("min", -2, "max", 0);
         assertThat(actual).isEqualTo(expected);
     }
 
