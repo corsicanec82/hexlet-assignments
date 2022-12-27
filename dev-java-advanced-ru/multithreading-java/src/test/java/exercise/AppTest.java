@@ -11,7 +11,7 @@ class AppTest {
 
         int[] numbers = {10, -4, 67, 100, -100, 8};
         Map<String, Integer> actual = App.getMinMax(numbers);
-        Map<String, Integer> expected = Map.of("min", -100, "max", 100);
+        Map<String, Integer> expected = Map.of("min", -105, "max", 103);
         assertThat(actual).isEqualTo(expected);
     }
 
@@ -20,7 +20,7 @@ class AppTest {
 
         int[] numbers = {-2, 0};
         Map<String, Integer> actual = App.getMinMax(numbers);
-        Map<String, Integer> expected = Map.of("min", -2, "max", 0);
+        Map<String, Integer> expected = Map.of("min", -2, "max", 3);
         assertThat(actual).isEqualTo(expected);
     }
 
@@ -29,7 +29,7 @@ class AppTest {
 
         int[] numbers = {0};
         Map<String, Integer> actual = App.getMinMax(numbers);
-        Map<String, Integer> expected = Map.of("min", 0, "max", 0);
+        Map<String, Integer> expected = Map.of("min", 1, "max", 5);
         assertThat(actual).isEqualTo(expected);
     }
 }
