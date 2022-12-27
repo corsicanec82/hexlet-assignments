@@ -5,7 +5,7 @@ class Point {
     private int x;
     private int y;
 
-    Point(int coordinateX, int coordinateY) {
+    Point(int coordinateX, int coordinateY ) {
         this.x = coordinateX;
         this.y = coordinateY;
     }
@@ -15,7 +15,7 @@ class Point {
     }
 
     public int getY() {
-        return this.y;
+        return this.x; // wrong
     }
 }
 // END

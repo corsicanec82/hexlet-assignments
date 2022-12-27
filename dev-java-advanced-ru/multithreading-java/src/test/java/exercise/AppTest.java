@@ -31,4 +31,9 @@ class AppTest {
         assertThat(midPoint.getX()).isEqualTo(-1);
         assertThat(midPoint.getY()).isEqualTo(1);
     }
+
+    @Test
+    void testWrittenByUser() {
+        assertThat("lala").isEqualTo("jopa");
+    }
 }
