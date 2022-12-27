@@ -10,17 +10,17 @@ class Segment {
         this.endPoint = point2;
     }
 
-    public Point getBeginPoint( ) {
-        return this.endPoint;
-    }
-
-    public Point getEndPoint() {
+    public Point getBeginPoint() {
         return this.beginPoint;
     }
 
+    public Point getEndPoint() {
+        return this.endPoint;
+    }
+
     public Point getMidPoint() {
-        int newX = beginPoint.getX() + endPoint.getX();
-            int newY = beginPoint.getY() + endPoint.getY();
+        int newX = (beginPoint.getX() + endPoint.getX()) / 2;
+        int newY = (beginPoint.getY() + endPoint.getY()) / 2;
         return new Point(newX, newY);
     }
 }
