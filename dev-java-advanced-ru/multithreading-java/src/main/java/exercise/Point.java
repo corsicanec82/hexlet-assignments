@@ -11,11 +11,11 @@ class Point {
     }
 
     public int getX() {
-        return this.x;
+        return this.y; // wrong
     }
 
     public int getY() {
-        return this.x; // wrong
+        return this.y;
     }
 }
 // END
