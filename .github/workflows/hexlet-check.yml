@@ -17,9 +17,6 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Hexlet assignment check
-        uses: hexlet/assignment-action@develop
-        env:
-          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-          ACTION_API_HOST: ${{ secrets.API_HOST }}
+        uses: hexlet/assignment-action@release
         with:
           hexlet_token: ${{ secrets.HEXLET_TOKEN }}
